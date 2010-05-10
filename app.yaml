@@ -1,0 +1,16 @@
+application: xrdpdemo
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /xrdp
+  script: xrdp.py
+- url: /webfinger
+  script: webfinger.py
+- url: /.well-known
+  static_dir: well-known
+  mime_type: application/xrd+xml
+- url: /
+  static_files: index.html
+  upload: index.html
