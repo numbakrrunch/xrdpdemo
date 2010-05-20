@@ -3,10 +3,13 @@
      xmlns:hm='http://host-meta.net/xrd/1.0'>
   <hm:Host xmlns='http://host-meta.net/xrd/1.0'>xrdpdemo.appspot.com</hm:Host>
   <Link rel='lrdd' 
-        template='http://xrdpdemo.appspot.com/webfinger?q={uri}'>
+        template='http://xrdpdemo.appspot.com/webfinger?acct={uri}'>
     <Title>Personal Resource Descriptor</Title>
   </Link>
-  <Link rel='http://xrdprovisioning.net/rel/provision' template='http://xrdpdemo.appspot.com/xrdp?q={uri}'>
+  <Link rel='http://xrdprovisioning.net/rel/provision' template='http://xrdpdemo.appspot.com/xrdp?acct={uri}'>
 	<Title>XRD Provisioning Service</Title>
+  </Link>
+  <Link rel='source-of' href='git://github.com/numbakrrunch/xrdpdemo.git'>
+	<Title>Source on github</Title>
   </Link>
 </XRD>

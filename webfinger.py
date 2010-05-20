@@ -24,9 +24,15 @@ class MainPage(webapp.RequestHandler):
     
     # HTTP GET handler, not defined by XRDS, returns resource descriptor
     def get(self):
-        xrd = XRD.make_XRD(Link.gql(""), "acct:charlie@ecece.com")
+        acct = self.request.get("acct")
+        if acct == None:
+            self.error(400)
+            return
+        links = XRD.get_links(acct)
+        xrd = XRD.make_XRD(links, acct)
 #        self.response.headers['Content-Type'] = 'application/xrd+xml'
         self.response.out.write(xrd)
+
 
 application = webapp.WSGIApplication(
                                      [('/webfinger', MainPage)],

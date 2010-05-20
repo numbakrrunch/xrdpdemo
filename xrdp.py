@@ -25,8 +25,9 @@ class MainPage(webapp.RequestHandler):
     # HTTP GET handler, not defined by XRDS, returns resource descriptor
     def get(self):
         acct = self.request.get("acct")
-        if acct == None:
+        if acct == "":
             self.error(400)
+            self.response.out.write("error: acct not provided")
             return
         links = XRD.get_links(acct)
         xrd = XRD.make_XRD(links, acct)
@@ -36,19 +37,22 @@ class MainPage(webapp.RequestHandler):
     # HTTP POST handler, add a link if there isn't already a link with the same properties
     def post(self):
         acct = self.request.get("acct")
-        if acct == None:
+        if acct == "":
             self.error(400)
+            self.response.out.write("error: acct not provided")
             return
         logging.info(self.request.body)
         link = XRD.parse_link(self.request.body)
         if link == None:
             self.error(400)
+            self.response.out.write("error: could not parse a link from request body")
             return
         link.acct = acct
         existing = XRD.get_link(acct, link.rel, link.type, link.href, link.template)
         if existing:  # conflict
             self.error(409)
-            return            
+            self.response.out.write("error: a link with the same rel, type, href/template already exists")
+            return
         link.put()
         xrd = XRD.make_XRD(XRD.get_links(acct), acct)
 #        self.response.headers['Content-Type'] = 'application/xrd+xml'
@@ -57,9 +61,10 @@ class MainPage(webapp.RequestHandler):
     # HTTP PUT handler, update an existing link
     def put(self):
         acct = self.request.get("acct")
-        if acct == None:
+        if acct == "":
             self.error(400)
-            return            
+            self.response.out.write("error: acct not provided")
+            return
         link = XRD.get_link(acct,
                             self.request.get("rel"),
                             self.request.get("type"),
@@ -67,6 +72,7 @@ class MainPage(webapp.RequestHandler):
                             self.request.get("template"))
         if link == None:
             self.error(400)
+            self.response.out.write("error: could not parse a link from request body")
             return
         newlink = XRD.parse_link(self.request.body) 
         link.rel = newlink.rel;
@@ -81,8 +87,9 @@ class MainPage(webapp.RequestHandler):
     # HTTP DELETE handler, delete an existing link
     def delete(self):
         acct = self.request.get("acct")
-        if acct == None:
+        if acct == "":
             self.error(400)
+            self.response.out.write("error: acct not provided")
             return            
         link = XRD.get_link(acct,
                             self.request.get("rel"),
@@ -91,7 +98,8 @@ class MainPage(webapp.RequestHandler):
                             self.request.get("template"))
         if link == None:
             self.error(404)
-            return            
+            self.response.out.write("error: link matching your params not found")
+            return
         link.delete()
         xrd = XRD.make_XRD(XRD.get_links(acct), acct)
 #        self.response.headers['Content-Type'] = 'application/xrd+xml'

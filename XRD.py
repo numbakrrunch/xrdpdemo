@@ -1,4 +1,5 @@
 import os
+import logging
 
 from xml.dom import minidom
 from google.appengine.ext.webapp import template
@@ -12,9 +13,9 @@ def make_XRD(links, acct):
     return template.render(path, template_params)
 
 # query for the db for the links for the specified account 
-def get_links(account):
+def get_links(acct):
     query = Link.all()
-    query.filter("acct =", account)
+    query.filter("acct =", acct)
     return query
 
 # query the db for a link matching the specified criteria

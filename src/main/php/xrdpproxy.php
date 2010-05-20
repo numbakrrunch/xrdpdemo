@@ -46,11 +46,4 @@ function get_links($acct) {
 	return $links;
 }
 
-/*
-echo $client->add($acct, $link);
-echo $client->update($acct, $link, $newlink);
-echo $client->delete($acct, $newlink);
-//echo $client->delete($acct, $link);
-*/
-
 ?>

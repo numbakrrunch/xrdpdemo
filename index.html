@@ -4,23 +4,34 @@
 <h1>XRD Provisioning Demo</h1>
 <p>Demo implementation of an <a href="http://xrdprovisioning.net/specs/1.0/wd01/xrd-provisioning-1.0-wd01.html">XRD Provisioning</a> service.</p>
 <p>
-Services available on this host:
+<h2>Services available on this host</h2>
 <ul>
-<li>/xrdp?q={uri} - XRD Provisioning endpoint</li>
-<li>/webfinger?q={uri} - Webfinger endpoint</li>
+<li>/xrdp?acct={uri} - XRD Provisioning endpoint</li>
+<li>/webfinger?acct={uri} - Webfinger endpoint</li>
 </ul>
-These services are also described in <a href="/.well-known/host-meta">/.well-known/host-meta</a>
-</p>
+<p>These services are also described in <a href="/.well-known/host-meta">/.well-known/host-meta</a></p>
 
-<p>
-Here are some sample curl commands for manually interacting with the service:
+<h2>Examples</h2>
+<p>Here are some sample curl commands for manually interacting with the service:</p>
 <ul>
-<li>POST - Add a new link (will not work if this exact link already exists): <pre>curl -v -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='http://www.example.com/linkeater/oexchange.xrd' /&gt;" http://xrdpdemo.appspot.com/xrdp?acct=charlie%40ecece.com</pre></li>
-<li>PUT - Update that link: <pre>curl -v -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='updated' /&gt;" "http://xrdpdemo.appspot.com/xrdp?acct=charlie%40ecece.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=http%3A%2F%2Fwww.example.com%2Flinkeater%2Foexchange.xrd" -X PUT</pre></li>
-<li>DELETE - Remove that link: <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=charlie%40ecece.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=updated" -X DELETE</pre></li>
+<li>POST - Add a new link (will not work if this exact link already exists): <pre>curl -v -H "Content-Type: application/xrd+xml" -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='http://www.oexchange.org/demo/linkeater/oexchange.xrd' /&gt;" http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com</pre></li>
+<li>PUT - Update that link: <pre>curl -v -H "Content-Type: application/xrd+xml" -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='new_href_value' /&gt;" "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=http%3A%2F%2Fwww.oexchange.org%2Fdemo%2Flinkeater%2Foexchange.xrd" -X PUT</pre></li>
+<li>DELETE - Remove the updated link: <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=new_href_value" -X DELETE</pre></li>
 </ul>
-</p>
+<p>FYI you must provide the proper "Content-Type: application/xrd+xml" header on POST and PUT (as shown) or your request will not succeed</p>
+
+<h2>More Info</h2>
+<ul>
+<li>source: <a href="http://github.com/numbakrrunch/xrdpdemo">http://github.com/numbakrrunch/xrdpdemo</a> (contributions welcome!)</li>
+<li>contact: charlie &lt;at&gt; clearspring.com or <a href="http://twitter.com/numbakrrunch">@numbakrrunch</a></li>
+</ul>
+<p>This site is hosted on free appengine, please contact me if you're planning any high volume tests or production integrations.  I can set up a stable deployment of this service to which you can delegate your webfinger and xrdp services for your own site, lmk if you're interested.</p>
+
+<h2>To Do</h2>
+<ul>
+<li>oauth 2.0 integration</li>
+<li>openid-connect integration</li>
+</ul>
 
 </body>
-
 </html>

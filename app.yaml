@@ -6,8 +6,12 @@ api_version: 1
 handlers:
 - url: /xrdp
   script: xrdp.py
+- url: /xrdp-oauth
+  script: xrdp-oauth.py
 - url: /webfinger
   script: webfinger.py
+- url: /authorize
+  script: authorize.py
 - url: /.well-known
   static_dir: well-known
   mime_type: application/xrd+xml

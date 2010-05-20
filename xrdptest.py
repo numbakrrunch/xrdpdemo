@@ -1,8 +1,8 @@
 import xrdpclient
 import httpclient
 
-#url="http://localhost:9090/xrdp"
-url="http://xrdpdemo.appspot.com/xrdp"
+url="http://localhost:9090/xrdp"
+#url="http://xrdpdemo.appspot.com/xrdp"
 acct="charlie"
 link={"rel": "http://oexchange.org/spec/0.8/rel/user-target",
       "type": "application/xrd+xml",
@@ -16,7 +16,8 @@ print httpclient.get(url, params={"acct":"charlie"})
 
 # POST/create
 print "--POST: adding a new link"
-print xrdpclient.add(url, acct, link)
+#print xrdpclient.add(url, acct, link)
+print xrdpclient.add(url, acct, newlink)
 
 ## PUT/update
 #print "--PUT: updating the link"
