@@ -1,36 +1,99 @@
 <html>
-<head><title>XRD Provisioning Demo</title></head>
+<head>
+	<title>XRD Provisioning Demo</title>
+
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+	<script type="text/javascript">
+		function set_method(form) {
+			form.method = form.meth.value;
+			return true;
+		}
+	</script>
+</head>
 <body>
 <h1>XRD Provisioning Demo</h1>
-<p>Demo implementation of an <a href="http://xrdprovisioning.net/specs/1.0/wd01/xrd-provisioning-1.0-wd01.html">XRD Provisioning</a> service.</p>
-<p>
+<p>Demo implementation of an <a href="http://xrdprovisioning.net/specs/1.0/wd01/xrd-provisioning-1.0-wd01.html">XRD Provisioning</a> service.  The endpoints are unauthenticated.</p>
 <h2>Services available on this host</h2>
 <ul>
-<li>/xrdp?acct={uri} - XRD Provisioning endpoint</li>
-<li>/webfinger?acct={uri} - Webfinger endpoint</li>
+	<li>/xrdp?acct={uri} - XRD Provisioning endpoint</li>
+	<li>/webfinger?acct={uri} - Webfinger endpoint</li>
 </ul>
 <p>These services are also described in <a href="/.well-known/host-meta">/.well-known/host-meta</a></p>
+
+<h2>Making Calls</h2>
+<h3>Supported Methods</h3>
+<ul>
+	<li>GET - Retrieve links</li>
+	<li>POST - Add a new link</li>
+	<li>PUT - Update an existing link</li>
+	<li>DELETE - Remove link(s)</li>
+</ul>
+<h3>Parameters</h3>
+<ul>
+	<li>account: all calls must send the "acct=" parameter to specify which account they're accessing</li>
+	<li>xml:id - GET, PUT and DELETE calls may reference a specific (existing) link by its xml:id by passing the "xmlid=" query parameter on the url</li>
+	<li>querying - GET calls may pass "type=", "rel=", "href=" and/or "template=" query params to retrieve matching entries</li>
+	<li>update - PUT calls may reference links by "rel=", "type=" and "href=" or "template=" instead of xml:id but must uniquely match one existing entry to succeed</li>
+	<li>batch delete - DELETE calls may pass "type=", "rel=", "href=" and/or "template=" to remove all matching entries</li>
+</ul>
+<h3>Content-Type</h3>
+<ul>
+    <li>POST/PUT calls can submit xml using the "application/xrd+xml" Content-Type</li>
+	<li>You can also POST from an HTML form using the default "application/x-www-form-urlencoded" Content-Type (this feature may be killed if it conflicts with auth flows)</li>
+</ul>
 
 <h2>Examples</h2>
 <p>Here are some sample curl commands for manually interacting with the service:</p>
 <ul>
-<li>POST - Add a new link (will not work if this exact link already exists): <pre>curl -v -H "Content-Type: application/xrd+xml" -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='http://www.oexchange.org/demo/linkeater/oexchange.xrd' /&gt;" http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com</pre></li>
-<li>PUT - Update that link: <pre>curl -v -H "Content-Type: application/xrd+xml" -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='new_href_value' /&gt;" "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=http%3A%2F%2Fwww.oexchange.org%2Fdemo%2Flinkeater%2Foexchange.xrd" -X PUT</pre></li>
-<li>DELETE - Remove the updated link: <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=new_href_value" -X DELETE</pre></li>
+	<li>List links for an account (GET): <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com"</pre></li>
+	<li>Get a link by xml:id (GET): <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&key=agh4cmRwZGVtb3IKCxIETGluaxgDDA"</pre></li>
+	<li>Query for matching links (GET): <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=describedby"</pre></li>
+	<li>Add a new link (POST): <pre>curl -v -H "Content-Type: application/xrd+xml" -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='http://www.oexchange.org/demo/linkeater/oexchange.xrd' /&gt;" http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com</pre></li>
+	<li>Update that link (PUT): <pre>curl -v -H "Content-Type: application/xrd+xml" -d "&lt;Link rel='http://oexchange.org/spec/0.8/rel/user-target' type='application/xrd+xml' href='new_href_value' /&gt;" "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=http%3A%2F%2Fwww.oexchange.org%2Fdemo%2Flinkeater%2Foexchange.xrd" -X PUT</pre></li>
+	<li>Remove the updated link (DELETE): <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=http%3A%2F%2Foexchange.org%2Fspec%2F0.8%2Frel%2Fuser-target&type=application%2Fxrd%2Bxml&href=new_href_value" -X DELETE</pre></li>
+	<li>Remove all rel=describedby links (DELETE): <pre>curl -v "http://xrdpdemo.appspot.com/xrdp?acct=email%40example.com&rel=describedby" -X DELETE</pre></li>
 </ul>
 <p>FYI you must provide the proper "Content-Type: application/xrd+xml" header on POST and PUT (as shown) or your request will not succeed</p>
+<textarea id="buf" style="display:none;"></textarea>
+
+<h2>Try It</h2>
+<form action="/xrdp" method="GET" id="xrdpquery" onSubmit="set_method(this);">
+	<table>
+		<tr><td>method:</td><td>
+		<select name="meth">
+			<option value="GET">GET</option>	
+			<option value="POST">POST</option>
+		<!--		
+			<option value="PUT">PUT</option>		
+			<option value="DELETE">DELETE</option>		
+		-->
+		</select>
+		</td></tr>
+		<tr><td>username:</td><td><input type="text" name="acct" value="email@example.com" size="50" /></td></tr>
+		<tr><td>rel:</td><td><input type="text" name="rel" size="50" /></td></tr>
+		<tr><td>type:</td><td><input type="text" name="type" size="50" /></td></tr>
+		<tr><td>href:</td><td><input type="text" name="href" size="50" /></td></tr>
+		<tr><td>template:</td><td><input type="text" name="template" size="50" /></td></tr>
+	</table>
+	<input type="hidden" name="suppress_response_type" value="true" />
+	<input type="submit" />
+</form>
+<div id="response">
+	<textarea rows="10" cols="120" style="display:none"></textarea>
+</div>
 
 <h2>More Info</h2>
 <ul>
-<li>source: <a href="http://github.com/numbakrrunch/xrdpdemo">http://github.com/numbakrrunch/xrdpdemo</a> (contributions welcome!)</li>
-<li>contact: charlie &lt;at&gt; clearspring.com or <a href="http://twitter.com/numbakrrunch">@numbakrrunch</a></li>
+	<li>source: <a href="http://github.com/numbakrrunch/xrdpdemo">http://github.com/numbakrrunch/xrdpdemo</a> (contributions welcome!)</li>
+	<li>contact: charlie &lt;at&gt; clearspring.com or <a href="http://twitter.com/numbakrrunch">@numbakrrunch</a></li>
+	<li>discussion: <a href="http://groups.google.com/group/xrd-provisioning">http://groups.google.com/group/xrd-provisioning</a></li>
 </ul>
 <p>This site is hosted on free appengine, please contact me if you're planning any high volume tests or production integrations.  I can set up a stable deployment of this service to which you can delegate your webfinger and xrdp services for your own site, lmk if you're interested.</p>
 
 <h2>To Do</h2>
 <ul>
-<li>oauth 2.0 integration</li>
-<li>openid-connect integration</li>
+	<li>oauth 2.0 integration</li>
+	<li>openid-connect integration</li>
 </ul>
 
 </body>

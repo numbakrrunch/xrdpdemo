@@ -17,8 +17,6 @@ from XRD import Link
 #
 # TODO:
 #  - auth
-#  - xml:id support
-#
 
 class MainPage(webapp.RequestHandler):
 
@@ -29,9 +27,24 @@ class MainPage(webapp.RequestHandler):
             self.error(400)
             self.response.out.write("error: acct not provided")
             return
-        links = XRD.get_links(acct)
+        key = self.request.get("xmlid")
+        if key:
+            link = XRD.get_link_by_key(key)
+            if link == None:
+                self.error(404)
+                self.response.out.write("link not found for id: " + key)
+                return
+            else:
+                links = [link]
+        else:
+            query = self.read_link_params()
+            links = XRD.get_links(acct, query)
+        logging.info(str(links))
         xrd = XRD.make_XRD(links, acct)
-#        self.response.headers['Content-Type'] = 'application/xrd+xml'
+        if self.request.get("suppress_response_type"):
+            self.response.headers['Content-Type'] = 'text/html'
+        else:
+            self.response.headers['Content-Type'] = 'application/xrd+xml'
         self.response.out.write(xrd)
 
     # HTTP POST handler, add a link if there isn't already a link with the same properties
@@ -41,12 +54,21 @@ class MainPage(webapp.RequestHandler):
             self.error(400)
             self.response.out.write("error: acct not provided")
             return
-        logging.info(self.request.body)
-        link = XRD.parse_link(self.request.body)
-        if link == None:
-            self.error(400)
-            self.response.out.write("error: could not parse a link from request body")
-            return
+        type = self.request.headers['Content-Type']
+        if type == "application/x-www-form-urlencoded":
+            logging.info("formencoded")
+            params = self.read_link_params(True);
+            logging.info("link params: " + str(params))
+            if params == None:  # error already sent by get_link()
+                return
+            link = XRD.new_link(params)
+        else:
+            link = XRD.parse_link(self.request.body)
+            if link == None:
+                self.error(400)
+                self.response.out.write("error: could not parse a link from request body")
+                return
+            
         link.acct = acct
         existing = XRD.get_link(acct, link.rel, link.type, link.href, link.template)
         if existing:  # conflict
@@ -55,7 +77,10 @@ class MainPage(webapp.RequestHandler):
             return
         link.put()
         xrd = XRD.make_XRD(XRD.get_links(acct), acct)
-#        self.response.headers['Content-Type'] = 'application/xrd+xml'
+        if self.request.get("suppress_response_type"):
+            self.response.headers['Content-Type'] = 'text/html'
+        else:
+            self.response.headers['Content-Type'] = 'application/xrd+xml'
         self.response.out.write(xrd)
     
     # HTTP PUT handler, update an existing link
@@ -65,23 +90,34 @@ class MainPage(webapp.RequestHandler):
             self.error(400)
             self.response.out.write("error: acct not provided")
             return
-        link = XRD.get_link(acct,
-                            self.request.get("rel"),
-                            self.request.get("type"),
-                            self.request.get("href"),
-                            self.request.get("template"))
-        if link == None:
-            self.error(400)
-            self.response.out.write("error: could not parse a link from request body")
-            return
-        newlink = XRD.parse_link(self.request.body) 
-        link.rel = newlink.rel;
-        link.type = newlink.type;
-        link.href = newlink.href;
-        link.template = newlink.template;
-        link.put()
+        key = self.request.get("xmlid")
+        if key:
+            link = XRD.get_link_by_key(key)
+            if link == None:
+                self.error(404)
+                self.response.out.write("link not found for id: " + key)
+                return
+        else:
+            query = self.read_link_params()
+            links = XRD.get_links(acct, query)
+            if links == None or links.count() == 0:
+                self.error(404)
+                self.response.out.write("link not found")
+                return
+            elif links.count() > 1:
+                self.error(400)
+                self.response.out.write("more than one match found")
+                return
+            link = links[0]
+        link.delete()
+        newlink = XRD.parse_link(self.request.body)
+        newlink.acct = acct
+        newlink.put()
         xrd = XRD.make_XRD(XRD.get_links(acct), acct)
-#        self.response.headers['Content-Type'] = 'application/xrd+xml'
+        if self.request.get("suppress_response_type"):
+            self.response.headers['Content-Type'] = 'text/html'
+        else:
+            self.response.headers['Content-Type'] = 'application/xrd+xml'
         self.response.out.write(xrd)
     
     # HTTP DELETE handler, delete an existing link
@@ -90,21 +126,57 @@ class MainPage(webapp.RequestHandler):
         if acct == "":
             self.error(400)
             self.response.out.write("error: acct not provided")
-            return            
-        link = XRD.get_link(acct,
-                            self.request.get("rel"),
-                            self.request.get("type"),
-                            self.request.get("href"),
-                            self.request.get("template"))
-        if link == None:
-            self.error(404)
-            self.response.out.write("error: link matching your params not found")
             return
-        link.delete()
+        key = self.request.get("xmlid")
+        if key:
+            link = XRD.get_link_by_key(key)
+            if link == None:
+                self.error(404)
+                self.response.out.write("link not found for id: " + key)
+                return
+            else:
+                links = [link]
+        else:
+            query = self.read_link_params()
+            links = XRD.get_links(acct, query)        
+            if links == None or links.count() == 0:
+                self.error(404)
+                self.response.out.write("error: link matching your params not found")
+                return
+        for link in links:
+            link.delete()
         xrd = XRD.make_XRD(XRD.get_links(acct), acct)
-#        self.response.headers['Content-Type'] = 'application/xrd+xml'
+        if self.request.get("suppress_response_type"):
+            self.response.headers['Content-Type'] = 'text/html'
+        else:
+            self.response.headers['Content-Type'] = 'application/xrd+xml'
         self.response.out.write(xrd)
 
+    # read a link from a request 
+    def read_link_params(self, validate = False):
+        attrs = self.request
+        link = {}
+        if attrs.get("rel"):
+            link['rel'] = attrs.get("rel")
+        elif validate:  # rel required
+            self.error(400)
+            self.response.out.write("error: missing rel attribute")
+            return
+        if attrs.get("type"):
+            link['type'] = attrs.get("type")
+        elif validate:  # type required
+            self.error(400)
+            self.response.out.write("error: missing type attribute")
+            return
+        if attrs.get("href"):
+            link['href'] = attrs.get("href")
+        elif attrs.get("template"):
+            link['template'] = attrs.get("template")
+        elif validate:  # href XOR template is required
+            self.error(400)
+            self.response.out.write("error: href or template attribute required but missing")
+            return
+        return link
 
 application = webapp.WSGIApplication([('/xrdp', MainPage)],
                                      debug=True)
